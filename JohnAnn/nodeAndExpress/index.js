@@ -8,8 +8,10 @@ const { User } = require("./models/User");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
+const config = require('./config/key');
+
 const mongoose = require('mongoose');
-mongoose.connect("mongodb+srv://Jeon:abcd1234@cluster0.zh30l.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0", {
+mongoose.connect(config.mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 }).then(() => console.log("MongoDB connected..."))
