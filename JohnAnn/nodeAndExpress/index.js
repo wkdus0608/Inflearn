@@ -18,7 +18,7 @@ mongoose.connect("mongodb+srv://Jeon:abcd1234@cluster0.zh30l.mongodb.net/?retryW
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!!')
+  res.send('Hello World!! 새복많');
 })
 
 app.post('/register', async (req, res) => {
