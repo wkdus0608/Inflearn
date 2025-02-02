@@ -29,7 +29,8 @@ app.post('/register', async (req, res) => {
     const userInfo = await user.save();
     res.status(200).json({ success: true, userInfo });
   } catch (err) {
-    res.json({ success: false, err });
+    console.error("Error:", err);
+    res.status(500).json({ success: false, err });
   }
 });
 
