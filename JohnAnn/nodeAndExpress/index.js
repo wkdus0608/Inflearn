@@ -3,6 +3,7 @@ const app = express();
 const port = 3000;
 
 const bodyParser = require('body-parser');
+const { auth } = require("./middleware/auth");
 const { User } = require("./models/User");
 const cookieParser = require("cookie-parser");
 
@@ -23,7 +24,7 @@ app.get('/', (req, res) => {
   res.send('Hello World!! 새복많');
 });
 
-app.post('/register', async (req, res) => {
+app.post('/api/users/register', async (req, res) => {
   try {
     const user = new User(req.body);
     const userInfo = await user.save();
@@ -59,6 +60,24 @@ app.post('/api/users/login', async (req, res) => {
     res.status(500).json({ loginSuccess: false, err });
   }
 });
+
+// 미들웨어
+app.get('/api/users/auth', auth , (req, res) => {
+
+  // 여기까지 미들웨어를 통과했다 => auth가 true
+  res.status(200).json({
+    _id: req.user._id,
+    isAdmin: req.user.role === 0 ? false : true,
+    isAuth: true,
+    email: req.user.email,
+    name: req.user.name,
+    lastname: req.user.lastname,
+    role: req.user.role,
+    image: req.user.image
+  })
+})
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
