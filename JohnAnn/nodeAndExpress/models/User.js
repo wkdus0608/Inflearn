@@ -1,61 +1,66 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 const saltRounds = 10;
 
-
 const userSchema = mongoose.Schema({
-    name: {
-        type: String,
-        maxlength: 50
-    },
-    email: {
-        type: String,
-        trim: true,
-        unique: 1
-    },
-    password: {
-        type: String,
-        minlength: 5
-    },
-    lastname: {
-        type: String,
-        maxlength: 50
-    },
-    role: {
-        type: Number,
-        default: 0
-    },
-    image: String,
-    token: {
-        type: String
-    },
-    tokenExp: {
-        type: Number
+  name: {
+    type: String,
+    maxlength: 50
+  },
+  email: {
+    type: String,
+    trim: true,
+    unique: 1
+  },
+  password: {
+    type: String,
+    minlength: 5
+  },
+  lastname: {
+    type: String,
+    maxlength: 50
+  },
+  role: {
+    type: Number,
+    default: 0
+  },
+  image: String,
+  token: {
+    type: String
+  },
+  tokenExp: {
+    type: Number
+  }
+});
+
+userSchema.pre('save', async function (next) {
+  if (this.isModified('password')) {
+    try {
+      const salt = await bcrypt.genSalt(saltRounds);
+      this.password = await bcrypt.hash(this.password, salt);
+      next();
+    } catch (err) {
+      next(err);
     }
-})
+  } else {
+    next();
+  }
+});
 
+userSchema.methods.comparePassword = async function (plainPassword) {
+  return bcrypt.compare(plainPassword, this.password);
+};
 
-userSchema.pre('save', function (next) {
-    var user = this;
-  
-    if (user.isModified('password')) {
-      // 비밀번호 암호화
-      bcrypt.genSalt(saltRounds, (err, salt) => {
-        if (err) return next(err);
-  
-        bcrypt.hash(user.password, salt, (err, hash) => {
-          if (err) return next(err);
-  
-          user.password = hash;
-          next(); // 암호화 완료 후 다음 단계 진행
-        });
-      });
-    } else {
-      next(); // 암호화 대상이 아닐 경우 바로 저장 진행
-    }
-  });
-  
+userSchema.methods.generateToken = async function () {
+  const user = this;
+  const token = jwt.sign(user._id.toHexString(), 'secretToken');
+  user.token = token;
+  await user.save();
+  return token;
+};
 
-const User = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema);
 
 module.exports = { User };
