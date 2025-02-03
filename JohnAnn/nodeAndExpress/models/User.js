@@ -61,19 +61,18 @@ userSchema.methods.generateToken = async function () {
   return token;
 };
 
-userSchema.statics.findByToken = function(token, cb) {
-  var user = this;
+userSchema.statics.findByToken = async function(token, cb) {
+  try {
+    // 토큰을 검증하여 decoded 값을 얻습니다.
+    const decoded = jwt.verify(token, 'secretToken');
+    // Promise 기반의 findOne() 사용 (콜백 없이 동작)
+    const user = await this.findOne({ _id: decoded, token: token });
+    return cb(null, user);
+  } catch (err) {
+    return cb(err);
+  }
+};
 
-  // 토큰 디코드
-  jwt.verify(token, 'secretToken', function(err, decoded) {
-    // 유저 아이디 이용해, 유저 찾기 -> 클라이언트에서 가져온 토큰과 디비에 보관된 토큰이 일치하는지 확인
-
-    user.findeOne({"_id":decoded, "token": token}, function(err, user) {
-      if(err) return cb(err);
-      cb(null, user)
-    })
-  })
-}
 
 const User = mongoose.model('User', userSchema);
 
